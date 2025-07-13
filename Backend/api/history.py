@@ -1,10 +1,11 @@
 # ===================================================================
-# File: history.py
+# File: history.py (Diperbarui)
 # Lokasi: GuavaScan/Backend/api/history.py
-# Deskripsi: Endpoint API untuk mengelola riwayat pemindaian pengguna,
-#            termasuk mengambil dan menghapus data riwayat.
+# Deskripsi: Endpoint API untuk mengelola riwayat, kini dengan
+#            logika untuk menghapus file gambar fisik.
 # ===================================================================
 
+import os # <-- 1. Impor library 'os' untuk berinteraksi dengan file sistem
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
@@ -13,10 +14,9 @@ from schemas import history_schema
 from services import auth_service
 from database import SessionLocal
 
-# Membuat instance router baru untuk dikelompokkan
 router = APIRouter()
 
-# Dependency untuk mendapatkan sesi database pada setiap permintaan
+# Dependency untuk mendapatkan sesi database
 def get_db():
     db = SessionLocal()
     try:
@@ -25,8 +25,6 @@ def get_db():
         db.close()
 
 # Mengimpor dependency get_current_user dari file predict.py
-# untuk memastikan hanya pengguna yang sudah login yang bisa mengakses endpoint ini.
-# Titik di depan (.predict) menandakan impor dari file dalam direktori yang sama.
 from .predict import get_current_user 
 
 @router.get("/", response_model=List[history_schema.HistoryResponse])
@@ -36,7 +34,6 @@ def get_user_history(
 ):
     """
     Endpoint untuk mengambil semua riwayat pemindaian milik pengguna yang sedang login.
-    Mengembalikan daftar riwayat yang cocok dengan id_pengguna dari token.
     """
     history = db.query(history_model.RiwayatPindai).filter(history_model.RiwayatPindai.id_pengguna == current_user_id).all()
     return history
@@ -48,23 +45,32 @@ def delete_user_history(
     current_user_id: int = Depends(get_current_user)
 ):
     """
-    Endpoint untuk menghapus satu entri riwayat pemindaian berdasarkan ID-nya.
+    Endpoint untuk menghapus satu entri riwayat pemindaian,
+    termasuk file gambar fisiknya.
     """
-    # Mencari data riwayat yang akan dihapus di database.
-    # Query ini memiliki dua kondisi:
-    # 1. ID riwayat harus cocok.
-    # 2. ID pengguna pada riwayat tersebut harus cocok dengan ID pengguna yang sedang login.
-    # Ini untuk memastikan pengguna tidak bisa menghapus riwayat milik orang lain.
     history_to_delete = db.query(history_model.RiwayatPindai).filter(
         history_model.RiwayatPindai.id_riwayat == history_id,
         history_model.RiwayatPindai.id_pengguna == current_user_id
     ).first()
 
-    # Jika data riwayat tidak ditemukan, kirim error 404 Not Found.
     if not history_to_delete:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Riwayat tidak ditemukan atau Anda tidak memiliki akses.")
     
-    # Jika ditemukan, hapus data tersebut dari database.
+    # --- 2. Logika untuk menghapus file gambar fisik ---
+    file_path = history_to_delete.gambar_pindai
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            print(f"File {file_path} berhasil dihapus.")
+        else:
+            print(f"File {file_path} tidak ditemukan, melanjutkan penghapusan data DB.")
+    except Exception as e:
+        # Jika terjadi error saat menghapus file, kita hanya akan mencatatnya
+        # dan tetap melanjutkan untuk menghapus data dari database.
+        print(f"Error saat menghapus file {file_path}: {e}")
+    # ----------------------------------------------------
+
+    # Menghapus data dari database
     db.delete(history_to_delete)
     db.commit()
     

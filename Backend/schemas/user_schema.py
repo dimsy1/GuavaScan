@@ -1,26 +1,29 @@
 # ===================================================================
-# File: user_schema.py
+# File: user_schema.py (Diperbarui dengan Validasi)
 # Lokasi: GuavaScan/Backend/schemas/user_schema.py
-# Deskripsi: Skema Pydantic untuk validasi data pengguna yang masuk dan keluar dari API.
+# Deskripsi: Menambahkan validasi untuk memastikan password tidak kosong.
 # ===================================================================
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field # 1. Impor Field dari Pydantic
 from datetime import datetime
 
 class UserCreate(BaseModel):
     """
     Skema untuk data yang diterima dari pengguna saat mendaftar.
-    Pydantic akan otomatis memvalidasi bahwa 'email' adalah format email yang valid.
     """
     username: str
     email: EmailStr
-    password: str
+    
+    # 2. Tambahkan validasi pada kolom password
+    # Field(..., min_length=8) berarti:
+    # ...      -> Kolom ini wajib diisi (required).
+    # min_length=8 -> Panjang minimal password adalah 8 karakter.
+    # Ini secara otomatis akan menolak string kosong.
+    password: str = Field(..., min_length=8)
 
 class UserResponse(BaseModel):
     """
     Skema untuk data pengguna yang dikirim kembali sebagai respons dari API.
-    Perhatikan bahwa kolom 'password' sengaja tidak disertakan di sini
-    untuk alasan keamanan.
     """
     id_pengguna: int
     username: str
@@ -28,10 +31,7 @@ class UserResponse(BaseModel):
     tanggal_dibuat: datetime
 
     class Config:
-        # Konfigurasi ini memungkinkan Pydantic untuk membaca data
-        # langsung dari objek model SQLAlchemy (orm_mode).
-        # Di Pydantic v2, ini menjadi from_attributes = True.
-        orm_mode = True
+        from_attributes = True
 
 class Token(BaseModel):
     """
