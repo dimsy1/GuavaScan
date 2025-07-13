@@ -6,6 +6,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import or_ # <-- 1. Impor 'or_' dari SQLAlchemy
 from database import SessionLocal
 from models import user as user_model
 from schemas import user_schema
@@ -67,9 +68,12 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     - Menggunakan OAuth2PasswordRequestForm untuk menerima data form (username & password).
     - Mengembalikan access_token jika login berhasil.
     """
-    # Mencari pengguna berdasarkan username.
-    # Catatan: Anda bisa menambahkan logika untuk mencari berdasarkan email juga di sini.
-    user = db.query(user_model.Pengguna).filter(user_model.Pengguna.username == form_data.username).first()
+    # ================== PERUBAHAN UTAMA DI SINI ==================
+    # Mencari pengguna berdasarkan username ATAU email.
+    user = db.query(user_model.Pengguna).filter(
+        or_(user_model.Pengguna.username == form_data.username, user_model.Pengguna.email == form_data.username)
+    ).first()
+    # ===========================================================
     
     # Jika pengguna tidak ditemukan atau password salah, kembalikan error "Unauthorized".
     if not user or not auth_service.verify_password(form_data.password, user.password):
