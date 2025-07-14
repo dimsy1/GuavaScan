@@ -23,7 +23,7 @@ import axios from 'axios';
 //
 // Contoh: const API_BASE_URL = 'http://192.168.1.5:8000';
 // ===================================================================
-const API_BASE_URL = 'http://ALAMAT_IP_KOMPUTER_ANDA:8000';
+const API_BASE_URL = 'http://10.19.103.116:8000';
 
 // Membuat instance Axios yang sudah dikonfigurasi sebelumnya.
 // Semua permintaan yang menggunakan 'apiClient' akan secara otomatis

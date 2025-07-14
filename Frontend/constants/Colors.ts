@@ -1,26 +1,40 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
+// ===================================================================
+// File: Colors.ts
+// Lokasi: Frontend/constants/Colors.ts
+// Deskripsi: Menyimpan palet warna aplikasi GuavaScan.
+// ===================================================================
 
-const tintColorLight = '#0a7ea4';
+const tintColorLight = '#2E7D32'; // Menggunakan hijau sebagai warna utama
 const tintColorDark = '#fff';
 
-export const Colors = {
+export default {
   light: {
-    text: '#11181C',
-    background: '#fff',
+    text: '#1B1B1B', // Warna teks utama
+    background: '#F5F5F5', // Warna latar belakang
     tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
+    tabIconDefault: '#ccc',
     tabIconSelected: tintColorLight,
+    // Warna kustom Anda
+    primary: '#2E7D32', // Hijau alami
+    accent: '#E5989B', // Guava Pink
+    textSecondary: '#616161',
+    backgroundSecondary: '#E0E0E0',
+    warning: '#FFA000',
+    error: '#D32F2F',
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
+    // Anda bisa mendefinisikan palet warna untuk mode gelap di sini
+    text: '#fff',
+    background: '#1B1B1B',
     tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
+    tabIconDefault: '#ccc',
     tabIconSelected: tintColorDark,
+    // Warna kustom Anda untuk mode gelap
+    primary: '#2E7D32',
+    accent: '#E5989B',
+    textSecondary: '#E0E0E0',
+    backgroundSecondary: '#616161',
+    warning: '#FFA000',
+    error: '#D32F2F',
   },
 };

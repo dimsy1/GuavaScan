@@ -1,59 +1,62 @@
 // ===================================================================
 // File: _layout.tsx
 // Lokasi: Frontend/app/_layout.tsx
-// Deskripsi: File ini adalah layout root atau titik masuk utama untuk
-//            seluruh aplikasi. Ia menggantikan fungsi App.js dan AppNavigator.js.
+// Deskripsi: Diperbarui untuk memuat font kustom (Poppins) saat
+//            aplikasi pertama kali dijalankan.
 // ===================================================================
 
 import React, { useContext, useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { AuthContext, AuthProvider } from '../services/AuthContext';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
+// --- 1. Tambahkan 'Text' ke dalam import dari react-native ---
+import { ActivityIndicator, View, StyleSheet, Text } from 'react-native'; 
+import { useFonts } from 'expo-font';
 
-// Komponen layout utama yang akan menentukan layar mana yang ditampilkan.
 const RootLayout = () => {
-  const { authenticated, isLoading } = useContext(AuthContext);
+  const { authenticated, isLoading: isAuthLoading } = useContext(AuthContext);
   const segments = useSegments();
   const router = useRouter();
 
-  useEffect(() => {
-    if (isLoading) return; // Jangan lakukan apa-apa jika masih loading
+  const [fontsLoaded, fontError] = useFonts({
+    'Poppins-Regular': require('../assets/fonts/Poppins-Regular.ttf'),
+    'Poppins-SemiBold': require('../assets/fonts/Poppins-SemiBold.ttf'),
+    'Poppins-Bold': require('../assets/fonts/Poppins-Bold.ttf'),
+  });
 
-    // Menggunakan 'as string' untuk memberi tahu TypeScript agar tidak terlalu ketat
-    // dalam memeriksa tipe data segmen saat ini.
+  useEffect(() => {
+    if (!fontsLoaded || isAuthLoading) return;
+
     const inAuthGroup = (segments[0] as string) === '(auth)';
 
     if (authenticated && inAuthGroup) {
-      // Jika pengguna sudah login tapi masih di halaman auth,
-      // arahkan ke halaman utama.
       router.replace('/(tabs)');
     } else if (!authenticated && !inAuthGroup) {
-      // Jika pengguna belum login dan tidak di halaman auth,
-      // paksa arahkan ke halaman login.
-      // Menggunakan 'as any' untuk melewati pemeriksaan tipe rute sementara.
-      router.replace('/(auth)/login' as any);
+      router.replace('/(auth)' as any);
     }
-  }, [authenticated, isLoading, segments]);
+  }, [authenticated, isAuthLoading, fontsLoaded, segments]);
 
-  // Tampilkan layar loading saat aplikasi sedang memeriksa token
-  if (isLoading) {
+  if (!fontsLoaded || isAuthLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#34A853" />
+        <ActivityIndicator size="large" color="#2E7D32" />
       </View>
     );
   }
 
+  // Jika ada error saat memuat font, tampilkan pesan
+  if (fontError) {
+    // Kode ini sekarang akan berfungsi karena <Text> sudah diimpor
+    return <Text>Error memuat font: {fontError.message}</Text>
+  }
+
   return (
     <Stack>
-      {/* Layar-layar ini tidak memiliki header */}
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
     </Stack>
   );
 };
 
-// Komponen utama yang diekspor
 export default function AppLayout() {
   return (
     <AuthProvider>
