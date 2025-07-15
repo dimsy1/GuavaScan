@@ -1,16 +1,15 @@
 // ===================================================================
 // File: _layout.tsx
 // Lokasi: Frontend/app/_layout.tsx
-// Deskripsi: Diperbarui untuk memuat font kustom (Poppins) saat
-//            aplikasi pertama kali dijalankan.
+// Deskripsi: Diperbarui untuk menambahkan layar kamera sebagai modal.
 // ===================================================================
 
 import React, { useContext, useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { AuthContext, AuthProvider } from '../services/AuthContext';
-// --- 1. Tambahkan 'Text' ke dalam import dari react-native ---
-import { ActivityIndicator, View, StyleSheet, Text } from 'react-native'; 
+import { ActivityIndicator, View, StyleSheet, Text } from 'react-native';
 import { useFonts } from 'expo-font';
+import { MenuProvider } from 'react-native-popup-menu';
 
 const RootLayout = () => {
   const { authenticated, isLoading: isAuthLoading } = useContext(AuthContext);
@@ -43,9 +42,7 @@ const RootLayout = () => {
     );
   }
 
-  // Jika ada error saat memuat font, tampilkan pesan
   if (fontError) {
-    // Kode ini sekarang akan berfungsi karena <Text> sudah diimpor
     return <Text>Error memuat font: {fontError.message}</Text>
   }
 
@@ -53,15 +50,25 @@ const RootLayout = () => {
     <Stack>
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      {/* Menambahkan layar kamera sebagai modal penuh */}
+      <Stack.Screen 
+        name="pindaiKamera" 
+        options={{ 
+          headerShown: false, 
+          presentation: 'fullScreenModal' 
+        }} 
+      />
     </Stack>
   );
 };
 
 export default function AppLayout() {
   return (
-    <AuthProvider>
-      <RootLayout />
-    </AuthProvider>
+    <MenuProvider>
+      <AuthProvider>
+        <RootLayout />
+      </AuthProvider>
+    </MenuProvider>
   );
 }
 
